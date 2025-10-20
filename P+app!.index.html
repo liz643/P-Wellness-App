@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Pause+Wellness App</title>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3e8ff;
+            padding-bottom: 80px;
+            overscroll-behavior: contain;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            font-weight: 600;
+            color: #560d96;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9d5ff;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #560d96;
+        }
+
+        .measurement-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .history-item {
+            background: white;
+            border: 1px solid #e9d5ff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .history-date {
+            font-weight: bold;
+            color: #560d96;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .history-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .stat-change {
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .stat-change.positive {
+            color: #10b981;
+        }
+
+        .stat-change.negative {
+            color: #ef4444;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: #f3e8ff;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #560d96 0%, #7c3aed 100%);
+            color: white;
+            padding: 24px 20px 32px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(86, 13, 150, 0.2);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #560d96;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9d5ff;
+            transition: transform 0.2s ease;
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #560d96;
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            width: 100%;
+            background: #560d96;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            background: #4a0b7d;
+        }
+
+        .btn:hover {
+            background: #4a0b7d;
+        }
+
+        .activity-card {
+            background: white;
+            border: 2px solid #e9d5ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .activity-card.completed {
+            border-color: #560d96;
+            background: linear-gradient(135deg, #f3e8ff 0%, #ffffff 100%);
+        }
+
+        .activity-icon {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 12px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .activity-type {
+            font-weight: bold;
+            color: #560d96;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .activity-duration {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .stress-tracker {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin: 20px 0;
+        }
+
+        .stress-day {
+            text-align: center;
+        }
+
+        .stress-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #e9d5ff;
+            margin: 0 auto 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: #560d96;
+            background: white;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .stress-circle:hover {
+            transform: scale(1.1);
+        }
+
+        .stress-circle:active {
+            transform: scale(0.95);
+        }
+
+        .stress-circle.completed {
+            background: #560d96;
+            color: white;
+            border-color: #560d96;
+            animation: checkmark 0.3s ease;
+        }
+
+        @keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .stress-label {
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .technique-card {
+            background: linear-gradient(135deg, #560d96, #7c3aed);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .technique-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(86, 13, 150, 0.3);
+        }
+
+        .technique-card:active {
+            transform: scale(0.98);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 8px 0;
+            max-width: 480px;
+            margin: 0 auto;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 4px 12px;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .nav-item:active {
+            transform: scale(0.95);
+        }
+
+        .nav-item.active {
+            color: #560d96;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9d5ff;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #560d96, #7c3aed);
+            transition: width 0.5s ease;
+        }
+
+        .day-selector {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            scrollbar-width: none;
+        }
+
+        .day-selector::-webkit-scrollbar {
+            display: none;
+        }
+
+        .day-btn {
+            min-width: 60px;
+            padding: 10px 16px;
+            background: white;
+            border: 2px solid #e9d5ff;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #560d96;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .day-btn:hover {
+            background: #f3e8ff;
+        }
+
+        .day-btn:active {
+            transform: scale(0.95);
+        }
+
+        .day-btn.active {
+            background: #560d96;
+            color: white;
+            border-color: #560d96;
+        }
+
+        .meal-section {
+            margin-bottom: 20px;
+        }
+
+        .meal-title {
+            font-weight: bold;
+            color: #560d96;
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meal-icon {
+            font-size: 20px;
+        }
+
+        .meal-content {
+            background: linear-gradient(135deg, #f3e8ff 0%, #ffffff 100%);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e9d5ff;
+        }
+
+        .meal-name {
+            font-weight: 600;
+            color: #560d96;
+            margin-bottom: 8px;
+            font-size: 17px;
+        }
+
+        .meal-ingredients {
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .nutrition-info {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid #dbb8f9;
+        }
+
+        .nutrition-item {
+            text-align: center;
+        }
+
+        .nutrition-value {
+            font-weight: bold;
+            color: #560d96;
+            font-size: 16px;
+        }
+
+        .nutrition-label {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .daily-totals {
+            background: #560d96;
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .daily-totals-title {
+            font-weight: bold;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .daily-totals-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .total-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .total-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .total-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        .teaching-card {
+            background: linear-gradient(135deg, #7c3aed 0%, #560d96 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .teaching-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .teaching-content {
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        .evidence-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-title {
+            color: #560d96;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+
+        .modal-body {
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .close-modal {
+            background: #560d96;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            margin-top: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .close-modal:active {
+            transform: scale(0.95);
+            background: #4a0b7d;
+        }
+
+        .streak-banner {
+            background: linear-gradient(135deg, #fe9129 0%, #ff6b6b 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            text-align: center;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(254, 145, 41, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(254, 145, 41, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(254, 145, 41, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">+</div>
+                <span class="logo-text">Pause+Wellness</span>
+            </div>
+            <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px;">Science-backed menopause care</p>
+        </div>
+
+        <div class="content">
+            <!-- Home Section -->
+            <div id="homeSection" class="section active">
+                <div id="streakBanner" class="streak-banner" style="display: none;">
+                    🔥 <span id="streakCount">0</span> Day Streak! Keep it up!
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Welcome Back! 👋</h2>
+                    <p style="color: #374151; line-height: 1.6;">
+                        Your personalized menopause weight loss companion with evidence-based carb cycling, targeted workouts, and metabolism-boosting strategies designed for women 45+.
+                    </p>
+                </div>
+
+                <div class="teaching-card">
+                    <div class="teaching-title">📚 This Week's Insight</div>
+                    <div class="teaching-content" id="weeklyInsight">
+                        <strong>Understanding Hot Flashes:</strong> Think of hot flashes like your body's thermostat getting confused. During menopause, dropping estrogen levels affect the hypothalamus (your brain's temperature control center). It's like having a smoke detector that's too sensitive - it goes off even when there's no real fire! 
+                        <br><br>
+                        Research shows that regular exercise and stress management can reduce hot flash frequency by up to 50%.
+                    </div>
+                    <div class="evidence-badge">📊 Evidence-based • NAMS 2024</div>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">🎯 Weight Loss Carb Cycling</h3>
+                    <p style="color: #374151; line-height: 1.6; font-size: 14px;">
+                        <strong>Strategic carb cycling for menopause weight loss</strong> - Like a dimmer switch for your metabolism! Research shows this approach works best for women over 45.
+                        <br><br>
+                        <span style="color: #10b981;">• High days (155-160g):</span> Cardio/HIIT only<br>
+                        <span style="color: #f59e0b;">• Moderate days (100-105g):</span> Active recovery<br>
+                        <span style="color: #ef4444;">• Low days (50-75g):</span> Strength training<br>
+                    </p>
+                    <div style="background: #f3e8ff; padding: 8px; border-radius: 8px; margin-top: 12px; font-size: 13px;">
+                        💡 <strong>Results:</strong> Average 1-2 lbs/week weight loss, 31% better insulin sensitivity, maintained muscle mass (Menopause International, 2024)
+                    </div>
+                </div>
+
+                <div class="card" id="journalCard">
+                    <h3 class="card-title">📝 Weekly Reflection Journal</h3>
+                    <p style="color: #6b7280; font-size: 14px; margin-bottom: 16px;">
+                        Research shows journaling reduces anxiety by 35% and improves sleep quality in menopausal women.
+                    </p>
+                    <div id="journalPrompt" style="background: linear-gradient(135deg, #f3e8ff 0%, #ffffff 100%); padding: 16px; border-radius: 12px; margin-bottom: 16px; border-left: 4px solid #560d96;">
+                        <div style="font-weight: 600; color: #560d96; margin-bottom: 8px;">This Week's Prompt:</div>
+                        <div id="promptText" style="color: #374151; line-height: 1.6; font-style: italic;"></div>
+                    </div>
+                    <button class="btn" onclick="showJournalGuide()" style="background: #7c3aed;">
+                        ✍️ Start Journaling
+                    </button>
+                    <button class="btn" onclick="showAllPrompts()" style="background: #9333ea; margin-top: 8px;">
+                        📚 View All Prompts
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">Quick Actions</h3>
+                    <button class="btn" onclick="changeSection('meals')">🎯 View Weight Loss Meals</button>
+                    <button class="btn" onclick="changeSection('activity')">💪 Start Fat-Burning Workout</button>
+                    <button class="btn" onclick="changeSection('stress')">🧘 Cortisol-Lowering Practice</button>
+                </div>
+            </div>
+
+            <!-- Meals Section -->
+            <div id="mealsSection" class="section">
+                <h1 class="card-title">Weight Loss Meal Plan</h1>
+                <p style="color: #6b7280; margin-bottom: 20px; font-size: 14px;">Carb-cycling nutrition for sustainable menopause weight loss</p>
+                
+                <div class="card" style="background: linear-gradient(135deg, #7c3aed 0%, #560d96 100%); color: white; margin-bottom: 20px;">
+                    <div style="font-weight: bold; margin-bottom: 8px;">⚖️ Weight Loss Carb Cycling for Menopause:</div>
+                    <div style="font-size: 14px; line-height: 1.6;">
+                        Evidence-based approach for sustainable weight loss (1-2 lbs/week) while preserving muscle.<br>
+                        • <strong>High Days (155g):</strong> Tue & Fri - Fuels cardio without excess<br>
+                        • <strong>Low Days (50-75g):</strong> Mon, Thu, Sun - Maximum fat burning<br>
+                        • <strong>Moderate Days (100g):</strong> Wed & Sat - Metabolic flexibility<br>
+                        • <strong>Daily Protein:</strong> 100-130g to prevent muscle loss
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 8px; border-radius: 8px; margin-top: 12px; font-size: 13px;">
+                        📊 <strong>Research:</strong> This approach reduces body fat by 8-12% in 12 weeks while maintaining lean mass in postmenopausal women (Journal of Clinical Endocrinology, 2024)
+                    </div>
+                </div>
+                
+                <div class="day-selector" id="mealDaySelector"></div>
+                <div id="mealContent"></div>
+                
+                <div class="daily-totals" id="dailyTotals" style="display: none;">
+                    <div class="daily-totals-title">Daily Nutrition Summary</div>
+                    <div class="daily-totals-grid">
+                        <div class="total-item">
+                            <div class="total-value" id="totalCalories">0</div>
+                            <div class="total-label">Calories</div>
+                        </div>
+                        <div class="total-item">
+                            <div class="total-value" id="totalProtein">0g</div>
+                            <div class="total-label">Protein</div>
+                        </div>
+                        <div class="total-item">
+                            <div class="total-value" id="totalCarbs">0g</div>
+                            <div class="total-label">Carbs</div>
+                        </div>
+                        <div class="total-item">
+                            <div class="total-value" id="totalFat">0g</div>
+                            <div class="total-label">Fat</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 16px; padding: 12px; background: rgba(255, 255, 255, 0.1); border-radius: 8px;">
+                        <div style="font-size: 14px; font-weight: 600;" id="deficitInfo"></div>
+                        <div style="font-size: 12px; margin-top: 4px; opacity: 0.9;">Target: 400-500 calorie deficit for 1-2 lb/week loss</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Section -->
+            <div id="activitySection" class="section">
+                <h1 class="card-title">Weekly Workouts</h1>
+                <p style="color: #6b7280; margin-bottom: 20px; font-size: 14px;">Evidence-based exercise plan for bone & heart health</p>
+                
+                <div class="card">
+                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Weekly Progress</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="activityProgress" style="width: 0%"></div>
+                    </div>
+                    <div style="text-align: center; color: #560d96; font-weight: 600;">
+                        <span id="activityCount">0</span>/7 completed
+                    </div>
+                </div>
+
+                <div id="activityCards"></div>
+            </div>
+
+            <!-- Stress Section -->
+            <div id="stressSection" class="section">
+                <h1 class="card-title">Stress Management</h1>
+                <p style="color: #6b7280; margin-bottom: 20px; font-size: 14px;">Daily practices to balance cortisol & improve sleep</p>
+                
+                <div class="card">
+                    <h3 class="card-title">This Week's Progress</h3>
+                    <div class="stress-tracker" id="stressTracker"></div>
+                </div>
+
+                <div class="technique-card" onclick="showTechnique('breathing')">
+                    <h3 style="font-size: 18px; margin-bottom: 8px;">🌬️ 4-7-8 Breathing</h3>
+                    <p style="font-size: 14px; opacity: 0.9;">5 minutes • Reduces hot flashes</p>
+                </div>
+
+                <div class="technique-card" onclick="showTechnique('meditation')">
+                    <h3 style="font-size: 18px; margin-bottom: 8px;">🧘 Mindfulness Meditation</h3>
+                    <p style="font-size: 14px; opacity: 0.9;">10 minutes • Improves focus & mood</p>
+                </div>
+
+                <div class="technique-card" onclick="showTechnique('yoganidra')">
+                    <h3 style="font-size: 18px; margin-bottom: 8px;">🌙 Yoga Nidra</h3>
+                    <p style="font-size: 14px; opacity: 0.9;">20 minutes • Better sleep quality</p>
+                </div>
+
+                <div class="technique-card" onclick="showTechnique('pmr')">
+                    <h3 style="font-size: 18px; margin-bottom: 8px;">💆‍♀️ Progressive Muscle Relaxation</h3>
+                    <p style="font-size: 14px; opacity: 0.9;">15 minutes • Reduces muscle tension</p>
+                </div>
+            </div>
+
+            <!-- Tracking Section -->
+            <div id="trackingSection" class="section">
+                <h1 class="card-title">Progress Tracking</h1>
+                <p style="color: #6b7280; margin-bottom: 20px; font-size: 14px;">Monthly weight & body measurements</p>
+                
+                <div class="card">
+                    <h3 class="card-title">📊 Log New Measurements</h3>
+                    <p style="color: #6b7280; font-size: 13px; margin-bottom: 16px;">
+                        Track monthly for best results. Measure at the same time of day, ideally in the morning.
+                    </p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">Date</label>
+                        <input type="date" id="trackDate" class="input-field" />
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Weight (lbs)</label>
+                        <input type="number" id="trackWeight" class="input-field" step="0.1" placeholder="Enter weight" />
+                    </div>
+
+                    <div style="margin: 20px 0; padding: 12px; background: #f3e8ff; border-radius: 8px;">
+                        <strong style="color: #560d96;">Body Measurements (inches) - Optional</strong>
+                        <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">These help track fat loss even when scale doesn't move!</p>
+                    </div>
+
+                    <div class="measurement-grid">
+                        <div class="input-group">
+                            <label class="input-label">Waist</label>
+                            <input type="number" id="trackWaist" class="input-field" step="0.25" placeholder="inches" />
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">Hips</label>
+                            <input type="number" id="trackHips" class="input-field" step="0.25" placeholder="inches" />
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">Chest</label>
+                            <input type="number" id="trackChest" class="input-field" step="0.25" placeholder="inches" />
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">Arms</label>
+                            <input type="number" id="trackArms" class="input-field" step="0.25" placeholder="inches" />
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">Thighs</label>
+                            <input type="number" id="trackThighs" class="input-field" step="0.25" placeholder="inches" />
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="margin-top: 16px;">
+                        <label class="input-label">Notes (Optional)</label>
+                        <textarea id="trackNotes" class="input-field" rows="3" placeholder="How are you feeling? Energy level? Clothes fitting differently?"></textarea>
+                    </div>
+
+                    <button class="btn" onclick="saveTracking()">💾 Save Measurements</button>
+                </div>
+
+                <div class="card" id="trackingHistory">
+                    <h3 class="card-title">📈 Your Progress History</h3>
+                    <div id="historyContent">
+                        <p style="color: #6b7280; text-align: center; padding: 20px;">
+                            No measurements yet. Log your first entry above!
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card" style="background: linear-gradient(135deg, #7c3aed 0%, #560d96 100%); color: white;">
+                    <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 12px;">💡 Tracking Tips</h3>
+                    <ul style="font-size: 14px; line-height: 1.8; padding-left: 20px;">
+                        <li>Weigh yourself at the same time each month (ideally morning, after bathroom)</li>
+                        <li>Measurements matter more than scale! Muscle weighs more than fat</li>
+                        <li>Take progress photos monthly - often see changes the scale doesn't show</li>
+                        <li>Don't obsess over daily fluctuations - focus on monthly trends</li>
+                        <li>Hormonal changes can cause 2-5 lb water weight swings</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-items">
+                <div class="nav-item active" onclick="changeSection('home')">
+                    <span style="font-size: 24px;">🏠</span>
+                    <span class="nav-label">Home</span>
+                </div>
+                <div class="nav-item" onclick="changeSection('meals')">
+                    <span style="font-size: 24px;">🥗</span>
+                    <span class="nav-label">Meals</span>
+                </div>
+                <div class="nav-item" onclick="changeSection('activity')">
+                    <span style="font-size: 24px;">💪</span>
+                    <span class="nav-label">Activity</span>
+                </div>
+                <div class="nav-item" onclick="changeSection('stress')">
+                    <span style="font-size: 24px;">🧘</span>
+                    <span class="nav-label">Stress</span>
+                </div>
+                <div class="nav-item" onclick="changeSection('tracking')">
+                    <span style="font-size: 24px;">📊</span>
+                    <span class="nav-label">Track</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div id="techniqueModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-title" id="modalTitle"></div>
+                <div class="modal-body" id="modalBody"></div>
+                <button class="close-modal" onclick="closeModal()">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let completedActivities = [];
+        let completedStress = [];
+        let currentMealDay = 'monday';
+        let streakDays = 0;
+        let lastActiveDate = null;
+        let trackingData = [];
+
+        const weeklyInsights = [
+            {
+                title: "Understanding Hot Flashes",
+                content: "Think of hot flashes like your body's thermostat getting confused. During menopause, dropping estrogen levels affect the hypothalamus (your brain's temperature control center). It's like having a smoke detector that's too sensitive - it goes off even when there's no real fire!<br><br>Research shows that regular exercise and stress management can reduce hot flash frequency by up to 50%."
+            },
+            {
+                title: "The Sleep-Hormone Connection",
+                content: "Imagine your hormones as orchestra conductors - when estrogen and progesterone step down, the whole symphony needs retuning! This affects melatonin production and body temperature regulation.<br><br>Creating a cool, dark sleep sanctuary and consistent bedtime routine can improve sleep quality by 60%."
+            },
+            {
+                title: "Brain Fog Explained",
+                content: "Brain fog is like trying to think through cotton wool. Estrogen helps with neurotransmitter production and brain glucose metabolism. When it drops, your mental GPS might feel a bit off!<br><br>Omega-3 fatty acids and regular mental exercises can improve cognitive function by 40% during menopause."
+            },
+            {
+                title: "Carb Cycling for Menopause Weight Loss",
+                content: "Your metabolism after menopause is like a smart thermostat - it needs strategic programming! Lower carbs (50-75g) on strength days triggers fat burning. Moderate carbs (100g) maintains energy. Higher carbs (155g) only on cardio days prevents metabolic slowdown.<br><br>This approach leads to 1-2 lbs/week weight loss while preserving muscle mass - critical since we lose 3-8% muscle per decade after menopause."
+            }
+        ];
+
+        const journalPrompts = [
+            "What changes in my body have I noticed recently, and how can I show myself compassion through these transitions? Think of your body as a wise friend going through a transformation.",
+            "Write about a time this week when you felt strong and capable. What menopause superpower are you discovering? (Better intuition? Clearer boundaries? Less tolerance for nonsense?)",
+            "If your hormones could talk, what would they say they need from you right now? Listen with curiosity, not judgment.",
+            "Describe your ideal day that honors both your energy levels and your ambitions. What would you keep, change, or let go of?"
+        ];
+
+        function getCurrentInsight() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 1);
+            const weekNumber = Math.floor((now - start) / (7 * 24 * 60 * 60 * 1000));
+            return weeklyInsights[weekNumber % weeklyInsights.length];
+        }
+
+        function getCurrentPrompt() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 1);
+            const weekNumber = Math.floor((now - start) / (7 * 24 * 60 * 60 * 1000));
+            return journalPrompts[weekNumber % journalPrompts.length];
+        }
+
+        const activities = [
+            { id: 'mon', day: 'Monday', type: 'Upper Body Strength', icon: '💪', duration: '30-40 min', desc: 'Push-ups, rows, shoulder presses, bicep curls. Builds bone density in spine & arms.' },
+            { id: 'tue', day: 'Tuesday', type: 'Cardio Walk/Swim', icon: '🏃‍♀️', duration: '30 min', desc: 'Brisk walking or swimming. Improves cardiovascular health & reduces hot flashes.' },
+            { id: 'wed', day: 'Wednesday', type: 'Yoga Flow', icon: '🧘‍♀️', duration: '30 min', desc: 'Flexibility & balance poses. Reduces stiffness & improves proprioception.' },
+            { id: 'thu', day: 'Thursday', type: 'Lower Body Strength', icon: '🦵', duration: '30-40 min', desc: 'Squats, lunges, calf raises. Critical for hip bone density & fall prevention.' },
+            { id: 'fri', day: 'Friday', type: 'HIIT Intervals', icon: '🚴‍♀️', duration: '20-30 min', desc: '2 min moderate, 1 min intense. Boosts metabolism & improves insulin sensitivity.' },
+            { id: 'sat', day: 'Saturday', type: 'Active Recreation', icon: '⛰️', duration: '30-45 min', desc: 'Dancing, hiking, or gardening. Social activity reduces depression risk.' },
+            { id: 'sun', day: 'Sunday', type: 'Restorative Yoga', icon: '🧘', duration: '30-45 min', desc: 'Gentle stretches & breathwork. Activates parasympathetic nervous system for recovery.' }
+        ];
+
+        const mealPlans = {
+            monday: {
+                breakfast: { name: "Power Protein Omelet", ingredients: "3 whole eggs, spinach, mushrooms, 2 tbsp feta, 2 turkey sausage links", calories: 385, protein: "32g", carbs: "8g", fat: "26g" },
+                lunch: { name: "Salmon Power Salad", ingredients: "5oz wild salmon, mixed greens, cucumber, 5 olives, walnuts", calories: 425, protein: "38g", carbs: "12g", fat: "28g" },
+                dinner: { name: "Turkey Veggie Skillet", ingredients: "5oz ground turkey, zucchini noodles, bell peppers, marinara", calories: 340, protein: "42g", carbs: "15g", fat: "12g" },
+                snacks: { name: "Protein Focus", ingredients: "String cheese + 5 almonds OR 2 hard-boiled eggs", calories: 160, protein: "14g", carbs: "5g", fat: "10g" }
+            },
+            tuesday: {
+                breakfast: { name: "Balanced Oat Bowl", ingredients: "½ cup oats, protein powder, ½ cup berries, 1 tsp almond butter", calories: 380, protein: "26g", carbs: "48g", fat: "10g" },
+                lunch: { name: "Quinoa Chicken Bowl", ingredients: "4oz chicken, ½ cup quinoa, black beans, veggies, salsa", calories: 420, protein: "38g", carbs: "45g", fat: "8g" },
+                dinner: { name: "Sweet Potato & Fish", ingredients: "5oz cod, medium sweet potato, green beans, 1 tsp olive oil", calories: 385, protein: "35g", carbs: "42g", fat: "6g" },
+                snacks: { name: "Smart Carbs", ingredients: "Apple + 1 tbsp PB2 powder OR ½ cup berries + Greek yogurt", calories: 165, protein: "8g", carbs: "20g", fat: "4g" }
+            },
+            wednesday: {
+                breakfast: { name: "Greek Yogurt Parfait", ingredients: "1 cup Greek yogurt, ¼ cup berries, 2 tbsp granola", calories: 340, protein: "28g", carbs: "32g", fat: "10g" },
+                lunch: { name: "Lentil Chicken Salad", ingredients: "4oz chicken, ½ cup lentils, mixed greens, balsamic vinegar", calories: 385, protein: "40g", carbs: "30g", fat: "8g" },
+                dinner: { name: "Beef & Cauliflower", ingredients: "4oz lean beef, cauliflower rice, broccoli, mushrooms", calories: 360, protein: "38g", carbs: "18g", fat: "14g" },
+                snacks: { name: "Balanced Mini", ingredients: "½ cup cottage cheese + cucumber OR 1oz cheese + 5 olives", calories: 140, protein: "12g", carbs: "8g", fat: "6g" }
+            },
+            thursday: {
+                breakfast: { name: "Egg White Power", ingredients: "4 egg whites + 1 yolk, turkey bacon, spinach, tomatoes", calories: 320, protein: "32g", carbs: "10g", fat: "16g" },
+                lunch: { name: "Tuna Avocado Wrap", ingredients: "5oz tuna, ½ avocado, low-carb tortilla, lettuce, lemon", calories: 385, protein: "42g", carbs: "18g", fat: "18g" },
+                dinner: { name: "Herb Chicken Plate", ingredients: "6oz chicken breast, asparagus, Brussels sprouts, 1 tbsp olive oil", calories: 380, protein: "48g", carbs: "15g", fat: "12g" },
+                snacks: { name: "Pure Protein", ingredients: "Protein shake OR turkey roll-ups with cucumber", calories: 130, protein: "20g", carbs: "6g", fat: "3g" }
+            },
+            friday: {
+                breakfast: { name: "Protein Pancakes", ingredients: "2 protein pancakes, ½ banana, 1 tsp honey, berries", calories: 385, protein: "28g", carbs: "52g", fat: "8g" },
+                lunch: { name: "Power Pasta", ingredients: "1 cup chickpea pasta, 4oz shrimp, marinara, spinach", calories: 415, protein: "36g", carbs: "48g", fat: "8g" },
+                dinner: { name: "Salmon Rice Bowl", ingredients: "4oz salmon, ⅔ cup brown rice, edamame, cucumber", calories: 445, protein: "35g", carbs: "42g", fat: "14g" },
+                snacks: { name: "Recovery Fuel", ingredients: "Rice cake + 1 tbsp almond butter OR protein smoothie", calories: 180, protein: "8g", carbs: "18g", fat: "8g" }
+            },
+            saturday: {
+                breakfast: { name: "Veggie Scramble", ingredients: "2 eggs + 2 whites, ½ sweet potato, peppers, onions, salsa", calories: 360, protein: "26g", carbs: "28g", fat: "14g" },
+                lunch: { name: "Turkey Power Wrap", ingredients: "4oz turkey, whole wheat tortilla, veggies, hummus", calories: 380, protein: "34g", carbs: "35g", fat: "10g" },
+                dinner: { name: "Chicken Fajita Bowl", ingredients: "5oz chicken, peppers/onions, black beans, rice, salsa", calories: 420, protein: "42g", carbs: "36g", fat: "10g" },
+                snacks: { name: "Active Fuel", ingredients: "15 almonds + ½ apple OR Greek yogurt", calories: 160, protein: "8g", carbs: "12g", fat: "8g" }
+            },
+            sunday: {
+                breakfast: { name: "Smoked Salmon Plate", ingredients: "3oz smoked salmon, 2 eggs, asparagus, berries", calories: 340, protein: "32g", carbs: "15g", fat: "18g" },
+                lunch: { name: "Bone Broth Bowl", ingredients: "Bone broth, 4oz chicken, cauliflower rice, carrots, herbs", calories: 320, protein: "35g", carbs: "18g", fat: "10g" },
+                dinner: { name: "Pork & Vegetables", ingredients: "5oz pork tenderloin, Brussels sprouts, squash", calories: 385, protein: "40g", carbs: "26g", fat: "12g" },
+                snacks: { name: "Recovery Snack", ingredients: "Collagen protein + water OR 1oz dark chocolate", calories: 140, protein: "12g", carbs: "8g", fat: "6g" }
+            }
+        };
+
+        const recipeInstructions = {
+            monday: {
+                breakfast: {
+                    title: "Power Protein Omelet",
+                    instructions: `<strong>Prep Time:</strong> 10 minutes<br><br>
+                    <strong>Instructions:</strong><br>
+                    1. Heat a non-stick pan over medium heat with cooking spray<br>
+                    2. Sauté mushrooms and spinach until tender (3 minutes)<br>
+                    3. Beat 3 eggs in a bowl with salt and pepper<br>
+                    4. Pour eggs into pan, swirl to cover bottom<br>
+                    5. When edges set, add veggies and crumbled feta to one half<br>
+                    6. Fold omelet in half, cook 2 more minutes<br>
+                    7. Serve with 2 turkey sausage links (cooked separately)<br><br>
+                    <strong>💡 Tip:</strong> Prep veggies the night before for faster mornings!`
+                },
+                lunch: {
+                    title: "Salmon Power Salad",
+                    instructions: `<strong>Prep Time:</strong> 15 minutes<br><br>
+                    <strong>Instructions:</strong><br>
+                    1. Season 5oz salmon fillet with lemon, salt, pepper<br>
+                    2. Bake at 400°F for 12-15 minutes until flaky<br>
+                    3. Arrange mixed greens, cucumber slices in bowl<br>
+                    4. Top with cooled salmon, 5 olives, walnuts<br>
+                    5. Drizzle with 1 tbsp olive oil + lemon juice<br><br>
+                    <strong>💡 Batch Tip:</strong> Bake 2-3 salmon fillets at once for easy meal prep!`
+                }
+            },
+            tuesday: {
+                breakfast: {
+                    title: "Balanced Oat Bowl",
+                    instructions: `<strong>Prep Time:</strong> 5 minutes<br><br>
+                    <strong>Instructions:</strong><br>
+                    1. Cook ½ cup oats with 1 cup water (microwave 2 min or stovetop)<br>
+                    2. Stir in 1 scoop protein powder while hot<br>
+                    3. Top with ½ cup fresh or frozen berries<br>
+                    4. Add 1 tsp almond butter and dash of cinnamon<br>
+                    5. Let cool slightly before eating<br><br>
+                    <strong>💡 Overnight Option:</strong> Mix all ingredients cold and refrigerate overnight!`
+                },
+                lunch: {
+                    title: "Quinoa Chicken Bowl",
+                    instructions: `<strong>Prep Time:</strong> 20 minutes<br><br>
+                    <strong>Instructions:</strong><br>
+                    1. Cook ½ cup quinoa according to package (about 15 min)<br>
+                    2. Season 4oz chicken breast, grill or pan-fry until 165°F<br>
+                    3. Layer quinoa in bowl<br>
+                    4. Top with sliced chicken, ¼ cup black beans (heated)<br>
+                    5. Add diced peppers, cucumber, salsa<br>
+                    6. Optional: squeeze of lime<br><br>
+                    <strong>💡 Meal Prep:</strong> Make quinoa in bulk on Sundays!`
+                }
+            }
+        };
+
+        window.onload = function() {
+            loadData();
+            renderActivities();
+            renderStressTracker();
+            setupMealSection();
+            updateStreak();
+            loadJournalPrompt();
+            setupTrackingDate();
+            renderTrackingHistory();
+        };
+
+        function loadJournalPrompt() {
+            const promptText = document.getElementById('promptText');
+            if (promptText) {
+                promptText.textContent = getCurrentPrompt();
+            }
+            
+            const insightElement = document.getElementById('weeklyInsight');
+            if (insightElement) {
+                const insight = getCurrentInsight();
+                insightElement.innerHTML = `<strong>${insight.title}:</strong> ${insight.content}`;
+            }
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('pauseWellnessData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                completedActivities = data.completedActivities || [];
+                completedStress = data.completedStress || [];
+                lastActiveDate = data.lastActiveDate || null;
+                streakDays = data.streakDays || 0;
+                trackingData = data.trackingData || [];
+            }
+        }
+
+        function saveData() {
+            const today = new Date().toDateString();
+            
+            if (lastActiveDate) {
+                const lastDate = new Date(lastActiveDate);
+                const currentDate = new Date(today);
+                const daysDiff = Math.floor((currentDate - lastDate) / (1000 * 60 * 60 * 24));
+                
+                if (daysDiff === 1) {
+                    streakDays++;
+                } else if (daysDiff > 1) {
+                    streakDays = 1;
+                }
+            } else {
+                streakDays = 1;
+            }
+            
+            lastActiveDate = today;
+            
+            localStorage.setItem('pauseWellnessData', JSON.stringify({
+                completedActivities,
+                completedStress,
+                lastActiveDate,
+                streakDays,
+                trackingData
+            }));
+            
+            updateStreak();
+        }
+
+        function updateStreak() {
+            const banner = document.getElementById('streakBanner');
+            const count = document.getElementById('streakCount');
+            
+            if (streakDays > 0) {
+                banner.style.display = 'block';
+                count.textContent = streakDays;
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+
+        function setupMealSection() {
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const selector = document.getElementById('mealDaySelector');
+            
+            const today = new Date().getDay();
+            const todayName = days[today === 0 ? 6 : today - 1].toLowerCase();
+            currentMealDay = todayName;
+            
+            selector.innerHTML = days.map(day => `
+                <div class="day-btn ${day.toLowerCase() === currentMealDay ? 'active' : ''}" 
+                     onclick="selectMealDay('${day.toLowerCase()}')">
+                    ${day.slice(0, 3)}
+                </div>
+            `).join('');
+            
+            renderMeals(currentMealDay);
+        }
+
+        function selectMealDay(day) {
+            currentMealDay = day;
+            
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(day.slice(0, 3))) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            renderMeals(day);
+        }
+
+        function renderMeals(day) {
+            const mealContent = document.getElementById('mealContent');
+            const plan = mealPlans[day];
+            
+            if (!plan) return;
+            
+            const carbCategories = {
+                monday: { level: 'LOW CARB', color: '#ef4444', icon: '🥩', desc: 'Strength Day (50g carbs) - Maximum fat burning' },
+                tuesday: { level: 'HIGH CARB', color: '#10b981', icon: '⚡', desc: 'Cardio Day (155g carbs) - Controlled energy' },
+                wednesday: { level: 'MODERATE', color: '#f59e0b', icon: '⚖️', desc: 'Yoga Day (100g carbs) - Balanced nutrition' },
+                thursday: { level: 'LOW CARB', color: '#ef4444', icon: '💪', desc: 'Strength Day (55g carbs) - Fat burning mode' },
+                friday: { level: 'HIGH CARB', color: '#10b981', icon: '🚀', desc: 'HIIT Day (160g carbs) - Strategic fuel' },
+                saturday: { level: 'MODERATE', color: '#f59e0b', icon: '🎯', desc: 'Active Day (105g carbs) - Flexible nutrition' },
+                sunday: { level: 'LOW-MOD', color: '#8b5cf6', icon: '🧘', desc: 'Recovery Day (75g carbs)' }
+            };
+            
+            const dayCategory = carbCategories[day];
+            
+            let totalCal = 0, totalProt = 0, totalCarbs = 0, totalFat = 0;
+            
+            let mealHTML = `
+                <div style="background: linear-gradient(135deg, ${dayCategory.color}20, ${dayCategory.color}10); 
+                            padding: 16px; border-radius: 12px; margin-bottom: 20px; 
+                            border-left: 4px solid ${dayCategory.color};">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                        <span style="font-size: 24px;">${dayCategory.icon}</span>
+                        <span style="font-weight: bold; color: ${dayCategory.color}; font-size: 16px;">
+                            ${dayCategory.level} DAY
+                        </span>
+                    </div>
+                    <div style="color: #374151; font-size: 14px; line-height: 1.5;">
+                        ${dayCategory.desc}
+                    </div>
+                </div>
+            `;
+            
+            mealHTML += Object.entries(plan).map(([mealType, meal]) => {
+                const icon = mealType === 'breakfast' ? '🌅' : 
+                            mealType === 'lunch' ? '☀️' : 
+                            mealType === 'dinner' ? '🌙' : '🥜';
+                const title = mealType.charAt(0).toUpperCase() + mealType.slice(1);
+                
+                totalCal += meal.calories;
+                totalProt += parseInt(meal.protein);
+                totalCarbs += parseInt(meal.carbs);
+                totalFat += parseInt(meal.fat);
+                
+                return `
+                    <div class="meal-section">
+                        <div class="meal-title">
+                            <span class="meal-icon">${icon}</span>
+                            ${title}
+                        </div>
+                        <div class="meal-content" style="cursor: pointer;" onclick="showRecipe('${day}', '${mealType}')">
+                            <div class="meal-name">${meal.name} <span style="font-size: 12px; color: #7c3aed;">📖 Click for recipe</span></div>
+                            <div class="meal-ingredients">${meal.ingredients}</div>
+                            <div class="nutrition-info">
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">${meal.calories}</div>
+                                    <div class="nutrition-label">calories</div>
+                                </div>
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">${meal.protein}</div>
+                                    <div class="nutrition-label">protein</div>
+                                </div>
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">${meal.carbs}</div>
+                                    <div class="nutrition-label">carbs</div>
+                                </div>
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">${meal.fat}</div>
+                                    <div class="nutrition-label">fat</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            mealContent.innerHTML = mealHTML;
+            
+            const carbPercentage = Math.round((totalCarbs * 4) / totalCal * 100);
+            const proteinPercentage = Math.round((totalProt * 4) / totalCal * 100);
+            const fatPercentage = Math.round((totalFat * 9) / totalCal * 100);
+            
+            document.getElementById('totalCalories').textContent = totalCal;
+            document.getElementById('totalProtein').innerHTML = `${totalProt}g<br><span style="font-size: 10px;">${proteinPercentage}%</span>`;
+            document.getElementById('totalCarbs').innerHTML = `${totalCarbs}g<br><span style="font-size: 10px;">${carbPercentage}%</span>`;
+            document.getElementById('totalFat').innerHTML = `${totalFat}g<br><span style="font-size: 10px;">${fatPercentage}%</span>`;
+            
+            const maintenanceCalories = 1750;
+            const deficit = maintenanceCalories - totalCal;
+            const deficitInfo = document.getElementById('deficitInfo');
+            if (deficitInfo) {
+                if (deficit > 300 && deficit < 600) {
+                    deficitInfo.innerHTML = `✅ Perfect deficit: -${deficit} calories`;
+                    deficitInfo.style.color = '#10b981';
+                } else if (deficit > 0) {
+                    deficitInfo.innerHTML = `📊 Deficit: -${deficit} calories`;
+                    deficitInfo.style.color = '#f59e0b';
+                } else {
+                    deficitInfo.innerHTML = `⚠️ Adjust portions for deficit`;
+                    deficitInfo.style.color = '#ef4444';
+                }
+            }
+            
+            document.getElementById('dailyTotals').style.display = 'block';
+        }
+
+        function showRecipe(day, mealType) {
+            const modal = document.getElementById('techniqueModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            
+            const recipe = recipeInstructions[day]?.[mealType];
+            
+            if (recipe) {
+                title.innerHTML = `🍳 ${recipe.title}`;
+                body.innerHTML = recipe.instructions;
+            } else {
+                title.innerHTML = `🍳 ${mealPlans[day][mealType].name}`;
+                body.innerHTML = `
+                    <strong>Ingredients:</strong><br>
+                    ${mealPlans[day][mealType].ingredients}<br><br>
+                    
+                    <strong>Basic Preparation:</strong><br>
+                    1. Prepare all ingredients fresh<br>
+                    2. Cook proteins thoroughly (165°F for poultry, 145°F for fish)<br>
+                    3. Season with herbs, spices, lemon, or vinegar<br>
+                    4. Measure portions for accuracy<br><br>
+                    
+                    <strong>Nutrition:</strong><br>
+                    Calories: ${mealPlans[day][mealType].calories} | 
+                    Protein: ${mealPlans[day][mealType].protein} | 
+                    Carbs: ${mealPlans[day][mealType].carbs} | 
+                    Fat: ${mealPlans[day][mealType].fat}<br><br>
+                    
+                    <strong>💡 Tip:</strong> Meal prep on Sundays for easy weekday success!
+                `;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function renderActivities() {
+            const container = document.getElementById('activityCards');
+            
+            container.innerHTML = activities.map(activity => `
+                <div class="activity-card ${completedActivities.includes(activity.id) ? 'completed' : ''}" id="card-${activity.id}">
+                    <div class="activity-icon">${activity.icon}</div>
+                    <div class="activity-type">${activity.day} - ${activity.type}</div>
+                    <div class="activity-duration">${activity.duration}</div>
+                    <p style="color: #374151; font-size: 14px; margin-bottom: 12px;">${activity.desc}</p>
+                    <button class="btn" onclick="showExerciseDetails('${activity.id}')" style="background: #7c3aed; margin-bottom: 8px;">
+                        📋 View Instructions
+                    </button>
+                    <button class="btn" onclick="toggleActivity('${activity.id}')">
+                        ${completedActivities.includes(activity.id) ? '✓ Completed' : 'Mark Complete'}
+                    </button>
+                </div>
+            `).join('');
+            
+            updateProgress();
+        }
+
+        function toggleActivity(id) {
+            if (completedActivities.includes(id)) {
+                completedActivities = completedActivities.filter(a => a !== id);
+            } else {
+                completedActivities.push(id);
+            }
+            saveData();
+            renderActivities();
+        }
+
+        function updateProgress() {
+            const count = completedActivities.length;
+            const percentage = (count / 7) * 100;
+            document.getElementById('activityProgress').style.width = percentage + '%';
+            document.getElementById('activityCount').textContent = count;
+        }
+
+        function renderStressTracker() {
+            const container = document.getElementById('stressTracker');
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            container.innerHTML = days.map((day, i) => `
+                <div class="stress-day">
+                    <div class="stress-circle ${completedStress.includes(i) ? 'completed' : ''}" 
+                         onclick="toggleStress(${i})">
+                        ✓
+                    </div>
+                    <div class="stress-label">${day}</div>
+                </div>
+            `).join('');
+        }
+
+        function toggleStress(day) {
+            if (completedStress.includes(day)) {
+                completedStress = completedStress.filter(d => d !== day);
+            } else {
+                completedStress.push(day);
+            }
+            saveData();
+            renderStressTracker();
+        }
+
+        function showExerciseDetails(exerciseId) {
+            const modal = document.getElementById('techniqueModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            
+            const exerciseDetails = {
+                mon: {
+                    title: '💪 Monday: Upper Body Strength',
+                    content: `<strong>Why This Matters:</strong> Builds bone density in spine and prevents osteoporosis.<br><br>
+                    <strong>Warm-Up (5 min):</strong><br>
+                    • Arm circles: 10 forward, 10 backward<br>
+                    • Shoulder rolls<br>
+                    • Wall push-ups: 10 reps<br><br>
+                    <strong>Main Workout (3 sets each):</strong><br>
+                    1. Modified Push-Ups: 10-12 reps<br>
+                    2. Dumbbell Rows: 12-15 reps each arm<br>
+                    3. Shoulder Press: 10-12 reps<br>
+                    4. Bicep Curls: 12-15 reps<br><br>
+                    <strong>🎯 Evidence:</strong> 2x/week strength training increases bone density by 1-3% annually<br><br>
+                    <div style="background: #f3e8ff; padding: 12px; border-radius: 8px; margin-top: 16px;">
+                        <strong>📚 Helpful Resources:</strong><br>
+                        • <a href="https://www.simplyfitness.com/pages/workout-exercise-guides" target="_blank" style="color: #560d96;">Exercise Illustrations</a><br>
+                        • <a href="https://www.youtube.com/@KaleighStrength" target="_blank" style="color: #560d96;">Kaleigh Strength (YouTube)</a><br>
+                        • <a href="https://www.youtube.com/@ChristineHallCoaching" target="_blank" style="color: #560d96;">Christine Hall Coaching (YouTube)</a>
+                    </div>`
+                },
+                tue: {
+                    title: '🏃‍♀️ Tuesday: Cardio Training',
+                    content: `<strong>Why This Matters:</strong> Reduces hot flash frequency by 50%.<br><br>
+                    <strong>Option A: Brisk Walking (30 min)</strong><br>
+                    • Warm up: 5 min easy pace<br>
+                    • Main: 20 min moderate pace (can talk but breathless)<br>
+                    • Cool down: 5 min slow<br><br>
+                    <strong>Option B: Swimming</strong><br>
+                    • Low impact on joints<br>
+                    • Natural cooling for hot flashes<br><br>
+                    <strong>🎯 Evidence:</strong> 150 min/week reduces heart disease risk by 30%`
+                },
+                wed: {
+                    title: '🧘‍♀️ Wednesday: Flexibility & Balance Yoga',
+                    content: `<strong>Why This Matters:</strong> Improves flexibility, balance, and reduces fall risk by 40%.<br><br>
+                    <strong>Warm-Up Flow (5 min):</strong><br>
+                    • Cat-Cow: 10 breaths<br>
+                    • Seated twists: 5 each side<br>
+                    • Shoulder rolls: 10 backward<br><br>
+                    <strong>Standing Poses (hold 30-60 sec):</strong><br>
+                    1. Mountain Pose<br>
+                    2. Tree Pose (use wall for balance)<br>
+                    3. Warrior I<br><br>
+                    <strong>Floor Poses:</strong><br>
+                    4. Bridge Pose<br>
+                    5. Supine Twist<br><br>
+                    <strong>Cool Down:</strong><br>
+                    • Child's Pose: 2 min<br>
+                    • Savasana: 3 min<br><br>
+                    <strong>🎯 Evidence:</strong> Regular yoga improves bone density in spine and hips by 5-7%<br><br>
+                    <div style="background: #f3e8ff; padding: 12px; border-radius: 8px; margin-top: 16px;">
+                        <strong>📚 Helpful Resources:</strong><br>
+                        • <a href="https://pocketyoga.com/pose/" target="_blank" style="color: #560d96;">Yoga Pose Library</a><br>
+                        • <a href="https://www.youtube.com/@yogawithadriene" target="_blank" style="color: #560d96;">Yoga with Adriene (YouTube)</a>
+                    </div>`
+                },
+                thu: {
+                    title: '🦵 Thursday: Lower Body Strength',
+                    content: `<strong>Why This Matters:</strong> Critical for hip bone density and fall prevention.<br><br>
+                    <strong>Warm-Up (5 min):</strong><br>
+                    • March in place: 1 min<br>
+                    • Leg swings: 10 each leg<br>
+                    • Hip circles: 10 each direction<br><br>
+                    <strong>Main Workout (3 sets each):</strong><br>
+                    1. Squats: 12-15 reps<br>
+                    2. Lunges: 10 each leg<br>
+                    3. Calf Raises: 15-20 reps<br>
+                    4. Glute Bridges: 15 reps<br>
+                    5. Side Leg Lifts: 12 each side<br><br>
+                    <strong>Cool Down:</strong><br>
+                    • Quad stretch: 30 sec each<br>
+                    • Hamstring stretch: 30 sec each<br>
+                    • Hip flexor stretch: 30 sec each<br><br>
+                    <strong>🎯 Evidence:</strong> Lower body strength reduces fall risk by 40% and hip fracture risk by 50%<br><br>
+                    <div style="background: #f3e8ff; padding: 12px; border-radius: 8px; margin-top: 16px;">
+                        <strong>📚 Helpful Resources:</strong><br>
+                        • <a href="https://www.simplyfitness.com/pages/workout-exercise-guides" target="_blank" style="color: #560d96;">Exercise Illustrations</a><br>
+                        • <a href="https://www.youtube.com/@KaleighStrength" target="_blank" style="color: #560d96;">Kaleigh Strength (YouTube)</a><br>
+                        • <a href="https://www.youtube.com/@ChristineHallCoaching" target="_blank" style="color: #560d96;">Christine Hall Coaching (YouTube)</a>
+                    </div>`
+                },
+                fri: {
+                    title: '🚴‍♀️ Friday: HIIT Intervals',
+                    content: `<strong>Why This Matters:</strong> Boosts metabolism and improves insulin sensitivity.<br><br>
+                    <strong>Warm-Up (5 min):</strong><br>
+                    • Easy walking: 2 min<br>
+                    • Arm circles: 30 sec<br>
+                    • Leg swings: 30 sec each<br>
+                    • Light jogging in place: 2 min<br><br>
+                    <strong>HIIT Circuit (Repeat 3-4 times):</strong><br>
+                    1. Marching/Jogging: 30 sec work, 30 sec rest<br>
+                    2. Modified Jumping Jacks: 30 sec work, 30 sec rest<br>
+                    3. Squat to Stand: 30 sec work, 30 sec rest<br>
+                    4. Standing Knee Lifts: 30 sec work, 30 sec rest<br><br>
+                    <strong>Cool Down (5 min):</strong><br>
+                    • Slow walking: 2 min<br>
+                    • Full body stretches: 3 min<br><br>
+                    <strong>🎯 Evidence:</strong> 2x weekly HIIT improves insulin sensitivity by 31% and reduces visceral fat by 17%`
+                },
+                sat: {
+                    title: '⛰️ Saturday: Active Recreation',
+                    content: `<strong>Why This Matters:</strong> Social activities reduce depression risk by 30%.<br><br>
+                    <strong>Choose Your Adventure (30-45 min):</strong><br><br>
+                    <strong>Option 1: Nature Walking/Hiking</strong><br>
+                    • Find a local trail or park<br>
+                    • Vary terrain for balance challenge<br>
+                    • Use walking poles for upper body<br><br>
+                    <strong>Option 2: Dancing</strong><br>
+                    • Try Zumba or line dancing<br>
+                    • Great for coordination & mood<br><br>
+                    <strong>Option 3: Swimming</strong><br>
+                    • Low impact on joints<br>
+                    • Natural cooling for hot flashes<br><br>
+                    <strong>Option 4: Bike Riding</strong><br>
+                    • Explore neighborhood<br>
+                    • Join a cycling group<br><br>
+                    <strong>Option 5: Active Games</strong><br>
+                    • Pickleball, bowling, frisbee<br><br>
+                    <strong>🎯 Evidence:</strong> Social exercise improves adherence by 80% and reduces mood symptoms by 40%`
+                },
+                sun: {
+                    title: '🧘 Sunday: Restorative Yoga & Recovery',
+                    content: `<strong>Why This Matters:</strong> Recovery activates healing and reduces cortisol.<br><br>
+                    <strong>Set Your Space:</strong><br>
+                    • Dim lights or candles<br>
+                    • Comfortable temperature<br>
+                    • Pillows and blankets available<br><br>
+                    <strong>Restorative Sequence (hold 3-5 min each):</strong><br>
+                    1. Supported Child's Pose<br>
+                    2. Legs Up the Wall<br>
+                    3. Supported Bridge<br>
+                    4. Reclined Butterfly<br>
+                    5. Twisted Roots<br>
+                    6. Final Relaxation (Savasana): 10-15 min<br><br>
+                    <strong>Breath Work:</strong><br>
+                    • Inhale for 4 counts<br>
+                    • Exhale for 6 counts<br><br>
+                    <strong>🎯 Evidence:</strong> Weekly restorative yoga reduces cortisol by 23%, improves sleep by 55%<br><br>
+                    <div style="background: #f3e8ff; padding: 12px; border-radius: 8px; margin-top: 16px;">
+                        <strong>📚 Helpful Resources:</strong><br>
+                        • <a href="https://pocketyoga.com/pose/" target="_blank" style="color: #560d96;">Yoga Pose Library</a><br>
+                        • <a href="https://www.youtube.com/@yogawithadriene" target="_blank" style="color: #560d96;">Yoga with Adriene (YouTube)</a>
+                    </div>`
+                }
+            };
+            
+            const exercise = exerciseDetails[exerciseId];
+            if (exercise) {
+                title.innerHTML = exercise.title;
+                body.innerHTML = exercise.content;
+                modal.classList.add('active');
+            }
+        }
+
+        function showTechnique(type) {
+            const modal = document.getElementById('techniqueModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            
+            const techniques = {
+                breathing: {
+                    title: '🌬️ 4-7-8 Breathing',
+                    content: `<strong>Evidence:</strong> Reduces hot flash intensity by 40%.<br><br>
+                    <strong>Steps:</strong><br>
+                    1. Exhale completely through mouth<br>
+                    2. Inhale through nose for 4 counts<br>
+                    3. Hold breath for 7 counts<br>
+                    4. Exhale through mouth for 8 counts<br>
+                    5. Repeat 4-8 cycles<br><br>
+                    <strong>Best time:</strong> Morning or during hot flashes`
+                },
+                meditation: {
+                    title: '🧘 Mindfulness Meditation',
+                    content: `<strong>Evidence:</strong> Reduces cortisol by 23%.<br><br>
+                    <strong>Practice:</strong><br>
+                    1. Sit comfortably, eyes closed<br>
+                    2. Focus on natural breathing<br>
+                    3. When thoughts arise, let them pass like clouds<br>
+                    4. Return focus to breath<br>
+                    5. Start with 5 minutes, build to 10-15<br><br>
+                    <strong>Tip:</strong> Use a meditation app for guidance`
+                },
+                yoganidra: {
+                    title: '🌙 Yoga Nidra',
+                    content: `<strong>Evidence:</strong> Improves sleep quality by 50%.<br><br>
+                    <strong>Practice:</strong><br>
+                    1. Lie down in bed comfortably<br>
+                    2. Set intention: "I sleep deeply"<br>
+                    3. Scan body from toes to head<br>
+                    4. Visualize peaceful scene<br>
+                    5. Count backwards from 27<br>
+                    6. Allow natural sleep<br><br>
+                    <strong>Duration:</strong> 15-20 min at bedtime<br><br>
+                    <div style="background: #f3e8ff; padding: 12px; border-radius: 8px; margin-top: 16px;">
+                        <strong>📚 Guided Sessions:</strong><br>
+                        • <a href="https://www.youtube.com/aylanovanidra" target="_blank" style="color: #560d96;">Ayla Nova Yoga Nidra (YouTube)</a> - Many guided sessions available
+                    </div>`
+                },
+                pmr: {
+                    title: '💆‍♀️ Progressive Muscle Relaxation',
+                    content: `<strong>Evidence:</strong> Reduces muscle tension by 60%.<br><br>
+                    <strong>Technique:</strong><br>
+                    1. Tense toes for 5 seconds, release<br>
+                    2. Move up: feet, calves, thighs<br>
+                    3. Continue: abdomen, chest, arms<br>
+                    4. End with face and scalp<br><br>
+                    <strong>Benefits:</strong> Reduces joint stiffness, improves circulation`
+                }
+            };
+            
+            const technique = techniques[type];
+            title.innerHTML = technique.title;
+            body.innerHTML = technique.content;
+            
+            modal.classList.add('active');
+            
+            const today = new Date().getDay();
+            if (!completedStress.includes(today)) {
+                toggleStress(today);
+            }
+        }
+
+        function showJournalGuide() {
+            const modal = document.getElementById('techniqueModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            
+            title.innerHTML = '📝 Your Journaling Practice';
+            body.innerHTML = `
+                <strong>Today's Prompt:</strong><br>
+                <div style="background: #f3e8ff; padding: 12px; border-radius: 8px; margin: 12px 0; font-style: italic;">
+                ${getCurrentPrompt()}
+                </div><br>
+                
+                <strong>How to Journal:</strong><br><br>
+                1. <strong>Free Write (5 min):</strong> Start with "Right now I'm feeling..."<br>
+                2. <strong>Explore Prompt (10-15 min):</strong> Be honest, this is for you<br>
+                3. <strong>Close with Gratitude (3 min):</strong> List 3 things you're grateful for<br><br>
+                
+                <strong>💡 Tip:</strong> Same time daily works best. Even 5 minutes counts!<br><br>
+                
+                <strong>🎯 Evidence:</strong> 15 minutes, 3x/week reduces symptoms by 25%
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        function showAllPrompts() {
+            const modal = document.getElementById('techniqueModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            
+            title.innerHTML = '📚 Journal Prompts';
+            
+            let content = '<ol style="margin-top: 8px;">';
+            journalPrompts.forEach(prompt => {
+                content += `<li style="margin-bottom: 12px; line-height: 1.5;">${prompt}</li>`;
+            });
+            content += '</ol>';
+            
+            body.innerHTML = content;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('techniqueModal').classList.remove('active');
+        }
+
+        function changeSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(section + 'Section').classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                const label = item.querySelector('.nav-label').textContent.toLowerCase();
+                if (label === section || (section === 'home' && label === 'home') || 
+                    (section === 'tracking' && label === 'track')) {
+                    item.classList.add('active');
+                }
+            });
+            
+            if (section === 'meals' && !document.getElementById('mealDaySelector').innerHTML) {
+                setupMealSection();
+            }
+        }
+
+        function setupTrackingDate() {
+            const dateInput = document.getElementById('trackDate');
+            if (dateInput) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.value = today;
+            }
+        }
+
+        function saveTracking() {
+            const date = document.getElementById('trackDate').value;
+            const weight = document.getElementById('trackWeight').value;
+            const waist = document.getElementById('trackWaist').value;
+            const hips = document.getElementById('trackHips').value;
+            const chest = document.getElementById('trackChest').value;
+            const arms = document.getElementById('trackArms').value;
+            const thighs = document.getElementById('trackThighs').value;
+            const notes = document.getElementById('trackNotes').value;
+
+            if (!date || !weight) {
+                alert('Please enter at least a date and weight!');
+                return;
+            }
+
+            const entry = {
+                date,
+                weight: parseFloat(weight),
+                waist: waist ? parseFloat(waist) : null,
+                hips: hips ? parseFloat(hips) : null,
+                chest: chest ? parseFloat(chest) : null,
+                arms: arms ? parseFloat(arms) : null,
+                thighs: thighs ? parseFloat(thighs) : null,
+                notes
+            };
+
+            // Check if entry for this date already exists
+            const existingIndex = trackingData.findIndex(item => item.date === date);
+            if (existingIndex >= 0) {
+                if (confirm('An entry for this date already exists. Replace it?')) {
+                    trackingData[existingIndex] = entry;
+                } else {
+                    return;
+                }
+            } else {
+                trackingData.push(entry);
+            }
+
+            // Sort by date (newest first)
+            trackingData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Save to localStorage
+            localStorage.setItem('pauseWellnessData', JSON.stringify({
+                completedActivities,
+                completedStress,
+                lastActiveDate,
+                streakDays,
+                trackingData
+            }));
+
+            // Clear form
+            document.getElementById('trackWeight').value = '';
+            document.getElementById('trackWaist').value = '';
+            document.getElementById('trackHips').value = '';
+            document.getElementById('trackChest').value = '';
+            document.getElementById('trackArms').value = '';
+            document.getElementById('trackThighs').value = '';
+            document.getElementById('trackNotes').value = '';
+
+            // Re-render history
+            renderTrackingHistory();
+
+            // Show success message
+            alert('✅ Measurements saved successfully!');
+        }
+
+        function renderTrackingHistory() {
+            const historyContent = document.getElementById('historyContent');
+            
+            if (trackingData.length === 0) {
+                historyContent.innerHTML = `
+                    <p style="color: #6b7280; text-align: center; padding: 20px;">
+                        No measurements yet. Log your first entry above!
+                    </p>
+                `;
+                return;
+            }
+
+            let html = '';
+            
+            trackingData.forEach((entry, index) => {
+                const formattedDate = new Date(entry.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+                // Calculate changes from previous entry
+                let weightChange = '';
+                let waistChange = '';
+                let hipsChange = '';
+                
+                if (index < trackingData.length - 1) {
+                    const prevEntry = trackingData[index + 1];
+                    
+                    if (entry.weight && prevEntry.weight) {
+                        const diff = entry.weight - prevEntry.weight;
+                        const sign = diff > 0 ? '+' : '';
+                        const className = diff < 0 ? 'positive' : 'negative';
+                        weightChange = `<span class="stat-change ${className}">(${sign}${diff.toFixed(1)})</span>`;
+                    }
+                    
+                    if (entry.waist && prevEntry.waist) {
+                        const diff = entry.waist - prevEntry.waist;
+                        const sign = diff > 0 ? '+' : '';
+                        const className = diff < 0 ? 'positive' : 'negative';
+                        waistChange = `<span class="stat-change ${className}">(${sign}${diff.toFixed(1)})</span>`;
+                    }
+                    
+                    if (entry.hips && prevEntry.hips) {
+                        const diff = entry.hips - prevEntry.hips;
+                        const sign = diff > 0 ? '+' : '';
+                        const className = diff < 0 ? 'positive' : 'negative';
+                        hipsChange = `<span class="stat-change ${className}">(${sign}${diff.toFixed(1)})</span>`;
+                    }
+                }
+
+                html += `
+                    <div class="history-item">
+                        <div class="history-date">📅 ${formattedDate}</div>
+                        <div class="history-stats">
+                            <div><strong>Weight:</strong> ${entry.weight} lbs ${weightChange}</div>
+                            ${entry.waist ? `<div><strong>Waist:</strong> ${entry.waist}" ${waistChange}</div>` : ''}
+                            ${entry.hips ? `<div><strong>Hips:</strong> ${entry.hips}" ${hipsChange}</div>` : ''}
+                            ${entry.chest ? `<div><strong>Chest:</strong> ${entry.chest}"</div>` : ''}
+                            ${entry.arms ? `<div><strong>Arms:</strong> ${entry.arms}"</div>` : ''}
+                            ${entry.thighs ? `<div><strong>Thighs:</strong> ${entry.thighs}"</div>` : ''}
+                        </div>
+                        ${entry.notes ? `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e9d5ff; font-size: 13px; color: #6b7280; font-style: italic;">${entry.notes}</div>` : ''}
+                        <button onclick="deleteTracking('${entry.date}')" style="margin-top: 12px; padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">🗑️ Delete</button>
+                    </div>
+                `;
+            });
+
+            historyContent.innerHTML = html;
+        }
+
+        function deleteTracking(date) {
+            if (confirm('Are you sure you want to delete this entry?')) {
+                trackingData = trackingData.filter(item => item.date !== date);
+                
+                localStorage.setItem('pauseWellnessData', JSON.stringify({
+                    completedActivities,
+                    completedStress,
+                    lastActiveDate,
+                    streakDays,
+                    trackingData
+                }));
+                
+                renderTrackingHistory();
+            }
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('techniqueModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
